@@ -1,0 +1,7 @@
+{
+    "python.linting.flake8Enabled": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.pythonPath": "D:\\software\\anaconda\\python.exe",
+    "C_Cpp.errorSquiggles": "Enabled"
+}
