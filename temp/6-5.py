@@ -1,14 +1,12 @@
 class XX:
     def __init__(self, a):
         self.a = a
+        self.b.append(1)
     b = []
 
 
-x1 = XX(1)
-print(x1.a)
-x1.b.append(3)
-x1.b.append(6)
-print(x1.b)
-x2 = XX(2)
-x2.b.append([1, 2])
-print(x2.b)
+li = [1, 2, 3, 4, 5]
+lx = li
+lx.append([3, 5])
+print(li)
+print(lx)
