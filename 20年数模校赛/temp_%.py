@@ -300,8 +300,8 @@ def annealing():
     rate_copy = copy.deepcopy(beat_rate)
     temp_us_volume = Bin.used_volume
     beat_contain = Bin.get_contain_program()
-    max_temperature = 1000
-    min_temperature = 3
+    max_temperature = 100
+    min_temperature = 2
     max_times = 8
     cur_temperature = max_temperature
     reset_date()
@@ -316,7 +316,7 @@ def annealing():
             if cur_rate > rate_copy:
                 ps_copy = cur_ps
                 rate_copy = cur_rate
-            elif random.random()*1.5 < math.exp((temp_us_volume - Bin.used_volume) / cur_temperature):
+            elif random.random()*1.5 < math.exp((temp_us_volume - Bin.used_volume) / (cur_temperature*30)):
                 ps_copy = cur_ps
                 rate_copy = cur_rate
             if cur_rate > beat_rate:
