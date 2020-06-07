@@ -294,29 +294,29 @@ def annealing():
     produce_complex_blocks(Block.List)
     Block.delete_repeat()
     Block.List = merge_sort(Block.List)
-    ps = [0] * 20
+    ps = [0] * 15
     ps_copy = copy.deepcopy(ps)
     beat_rate = place_block(ps)
     rate_copy = copy.deepcopy(beat_rate)
     temp_us_volume = Bin.used_volume
     beat_contain = Bin.get_contain_program()
     max_temperature = 100
-    min_temperature = 2
+    min_temperature = 3
     max_times = 8
     cur_temperature = max_temperature
     reset_date()
     while cur_temperature > min_temperature:
         for i in range(max_times):
             reset_date()
-            k = random.randint(0, 19)
+            k = random.randint(0, 14)
             cur_ps = copy.deepcopy(ps_copy)
-            cur_ps[k] = random.randint(0, 15)
+            cur_ps[k] = random.randint(0, 10)
             cur_rate = place_block(cur_ps)
 
             if cur_rate > rate_copy:
                 ps_copy = cur_ps
                 rate_copy = cur_rate
-            elif random.random()*1.5 < math.exp((temp_us_volume - Bin.used_volume) / (cur_temperature*30)):
+            elif random.random()*1.5 < math.exp((temp_us_volume - Bin.used_volume) / (cur_temperature*10)):
                 ps_copy = cur_ps
                 rate_copy = cur_rate
             if cur_rate > beat_rate:
@@ -328,6 +328,36 @@ def annealing():
 
 
 annealing()
+'''
+produce_box_list()
+produce_simple_blocks(Block.List, Box.List, Box.avail)
+produce_complex_blocks(Block.List)
+Block.delete_repeat()
+Block.List = merge_sort(Block.List)
+ps = [0] * 15
+print(place_block(ps))
+print(Bin.get_contain_program())
+'''
 
-# 0.8281861979166667
-#[[0, 55, 0], [0, 55, 0], [0, 12, 32], [29, 4, 24], [0, 24, 21]]
+# 调试切割空间函数、及空间转移函数
+'''
+temp_block = Block(25, 30, 20)
+temp_bin = Bin()
+gen_cutted_space([[0, 0, 0], [80, 60, 60]], temp_block, temp_bin.spaceStack)
+transfer_space(temp_bin.spaceStack.pop(), temp_bin.spaceStack)
+for x in temp_bin.spaceStack:
+    print(x)
+'''
+
+# 调试块生成函数及排序函数
+'''
+for x in Block.List:
+    print(x.length, x.width, x.height, x.contain)
+x1 = pd.DataFrame(columns=['0', '1', '2', 'w'])
+for x in Block.List:
+    x1 = x1.append([{'0': x.contain[0],
+                     '1': x.contain[1],
+                     '2': x.contain[2],
+                     'w':x.volume}], ignore_index=True)
+x1.to_csv('D:\\Program_file\\Python-File\\20年数模校赛\\three_data.csv')
+'''

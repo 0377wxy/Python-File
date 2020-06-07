@@ -1,11 +1,14 @@
 import copy
 import random
 import math
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 #　小盒子的类
 
-BinLongth = 60
+BinLongth = 50
 BinWidth = 40
-BinHeight = 30.5
+BinHeight = 32.2
 
 
 class Box:
@@ -32,6 +35,7 @@ class Block:
         self.level = 0
         self.limit_lenght = limit_lenght
         self.limit_width = limit_width
+        self.new_using_volume = 0
 
     MinAreaRate = 0.7
     MaxLevel = 5
@@ -127,6 +131,7 @@ def produce_simple_blocks(Block_List, Box_List, Box_avail):
                                     nx * box.length, ny * box.width, nz * box.height,
                                     nx * box.length, ny * box.width)
                                 temp_block.contain[box.kind] = nx * ny * nz
+                                temp_block.new_using_volume = box.volume*nx * ny * nz
                                 if temp_block.contain[box.kind] <= 20:
                                     Block.List.append(temp_block)
 
@@ -146,6 +151,7 @@ def produce_complex_blocks(Block_List):
                                            block1.height,
                                            block1.length + block2.length,
                                            min(block2.width, block1.width))
+                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         temp_block.set_level(block1, block2)
                         temp_block.set_contain(block1, block2)
                         if (temp_block.limit_lenght * temp_block.limit_width) / (temp_block.length * temp_block.width) >= Block.MinAreaRate and \
@@ -168,6 +174,7 @@ def produce_complex_blocks(Block_List):
                                            block1.width+block2.width)
                         temp_block.set_level(block1, block2)
                         temp_block.set_contain(block1, block2)
+                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         if (temp_block.limit_lenght * temp_block.limit_width) / (temp_block.length * temp_block.width) >= Block.MinAreaRate and \
                                 (block1.volume + block2.volume) / temp_block.volume >= Block.MinFillRate and \
                                 temp_block.length <= Bin.Length and \
@@ -185,6 +192,7 @@ def produce_complex_blocks(Block_List):
                                            block2.limit_lenght, block2.limit_width)
                         temp_block.set_level(block1, block2)
                         temp_block.set_contain(block1, block2)
+                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         if (temp_block.limit_lenght * temp_block.limit_width) / (temp_block.length * temp_block.width) >= Block.MinAreaRate and \
                                 (block1.volume + block2.volume) / temp_block.volume >= Block.MinFillRate and \
                                 temp_block.length <= Bin.Length and \
@@ -293,7 +301,7 @@ def place_block(ps):
             Box.avail[1] = Box.avail[1] - cur_block.contain[1]
             Box.avail[2] = Box.avail[2] - cur_block.contain[2]
             bin.plan.append([cur_pos_space, cur_block])
-            bin.using_volume += cur_block.volume
+            bin.using_volume += cur_block.new_using_volume
             gen_cutted_space(cur_pos_space, cur_block, bin.spaceStack)
         else:
             transfer_space(cur_pos_space, bin.spaceStack)
@@ -313,6 +321,7 @@ def reset_date():
 
 # 模拟退火
 def annealing():
+    rate_list = []
     produce_box_list()
     produce_simple_blocks(Block.List, Box.List, Box.avail)
     produce_complex_blocks(Block.List)
@@ -322,11 +331,11 @@ def annealing():
     ps_copy = copy.deepcopy(ps)
     beat_rate = place_block(ps)
     rate_copy = copy.deepcopy(beat_rate)
-    temp_us_volume = Bin.used_volume
+    temp_us_volume = Bin.volume * Bin.Num
     beat_contain = Bin.get_contain_program()
     max_temperature = 100
     min_temperature = 2
-    max_times = 8
+    max_times = 6
     cur_temperature = max_temperature
     reset_date()
     while cur_temperature > min_temperature:
@@ -336,11 +345,11 @@ def annealing():
             cur_ps = copy.deepcopy(ps_copy)
             cur_ps[k] = random.randint(0, 15)
             cur_rate = place_block(cur_ps)
-
+            rate_list.append(cur_rate)
             if cur_rate > rate_copy:
                 ps_copy = cur_ps
                 rate_copy = cur_rate
-            elif random.random()*1.5 < math.exp((temp_us_volume - Bin.used_volume) / (cur_temperature*30)):
+            elif random.random()*1.5 < math.exp(-math.fabs(temp_us_volume - Bin.volume * Bin.Num)*50 / (cur_temperature)):
                 ps_copy = cur_ps
                 rate_copy = cur_rate
             if cur_rate > beat_rate:
@@ -350,8 +359,37 @@ def annealing():
     print(beat_rate)
     print(beat_contain)
 
+    f.write(str(Bin.Num*BinLongth*BinWidth*BinHeight))
+    f.write('\n')
+    f.write(str(beat_contain))
+    f.write('\n')
+    f.write(str(Bin.Num))
+    f.write('\n')
+    '''
+    x_x = [x for x in range(len(rate_list))]
+    plt.plot(x_x, rate_list)
+    plt.show()
+    '''
 
-annealing()
+# annealing()
+
+
+df1 = pd.read_excel(
+    'D:\\Program_file\\Python-File\\20年数模校赛\\工作簿1.xlsx', sheet_name='Sheet1')
+x1 = np.array(df1)
+filename = 'write_data.txt'
+with open(filename, 'a') as f:
+    xxxx = 1
+    for lwh in x1:
+        f.write(str(xxxx))
+        f.write('\n')
+        xxxx += 1
+        BinLongth = lwh[0]
+        BinWidth = lwh[1]
+        BinHeight = lwh[2]
+        annealing()
+        reset_date()
+        print("---------------")
 
 
 # 0.8734608378870674

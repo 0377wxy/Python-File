@@ -1,3 +1,7 @@
+import pandas as pd
+import numpy as np
+
+
 class XX:
     def __init__(self, a):
         self.a = a
@@ -5,8 +9,7 @@ class XX:
     b = []
 
 
-li = [1, 2, 3, 4, 5]
-lx = li
-lx.append([3, 5])
-print(li)
-print(lx)
+df1 = pd.read_excel(
+    'D:\\Program_file\\Python-File\\20年数模校赛\\工作簿1.xlsx', sheet_name='Sheet1')
+x1 = np.array(df1)
+print(x1)
