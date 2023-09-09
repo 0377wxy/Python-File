@@ -1,14 +1,12 @@
 import copy
 import random
 import math
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-#　小盒子的类
 
-BinLongth = 50
-BinWidth = 40
-BinHeight = 32.2
+import pandas as pd
+
+import matplotlib.pyplot as plt
+
+#　小盒子的类
 
 
 class Box:
@@ -36,10 +34,9 @@ class Block:
         self.limit_lenght = limit_lenght
         self.limit_width = limit_width
         self.new_using_volume = 0
-
     MinAreaRate = 0.7
-    MaxLevel = 5
-    MaxBlocks = 30000
+    MaxLevel = 6
+    MaxBlocks = 50000
     MinFillRate = 0.78
     List = []
 
@@ -62,14 +59,15 @@ class Bin:
     def __init__(self):
         self.plan = []
         self.using_volume = 0
-        self.spaceStack = [[[0, 0, 0], [BinLongth, BinWidth, BinHeight]]]
+
+        self.spaceStack = [[[0, 0, 0], [80, 60, 60]]]
 
     List = []
-    Length = BinLongth
-    Width = BinWidth
-    Height = BinHeight
+    Length = 80
+    Width = 60
+    Height = 60
     Num = 0
-    volume = BinLongth * BinWidth * BinHeight
+    volume = 80 * 60 * 60
     used_volume = 0
 
     @classmethod
@@ -90,31 +88,17 @@ class Bin:
             contain_program.append(con)
         return contain_program
 
-    def get_contain(self):
-        con = [0, 0, 0]
-        for plan_one in self.plan:
-            con[0] += plan_one[1].contain[0]
-            con[1] += plan_one[1].contain[1]
-            con[2] += plan_one[1].contain[2]
-        return con
 # 产生小盒子的列表
 
 
 def produce_box_list():
     box1 = Box(21, 14, 9, 0)
     box2 = Box(14, 21, 9, 0)
-    box3 = Box(14, 19, 21, 0)
-    box4 = Box(19, 14, 21, 0)
-    box5 = Box(25, 15, 9.5, 1)
-    box6 = Box(15, 25, 9.5, 1)
-    box7 = Box(15, 9.5, 25, 1)
-    box8 = Box(9.5, 15, 25, 1)
-    box9 = Box(27.5, 17.5, 10.5, 2)
-    box10 = Box(17.5, 27.5, 10.5, 2)
-    box11 = Box(10.5, 17.5, 27.5, 2)
-    box12 = Box(17.5, 10.5, 27.5, 2)
-    Box.List = [box1, box2, box3, box4, box5,
-                box6, box7, box8, box9, box10, box11, box12]
+    box3 = Box(25, 15, 9.5, 1)
+    box4 = Box(15, 25, 9.5, 1)
+    box5 = Box(27.5, 17.5, 10.5, 2)
+    box6 = Box(17.5, 27.5, 10.5, 2)
+    Box.List = [box1, box2, box3, box4, box5, box6]
 
 # 产生简单的块
 
@@ -130,10 +114,9 @@ def produce_simple_blocks(Block_List, Box_List, Box_avail):
                                 temp_block = Block(
                                     nx * box.length, ny * box.width, nz * box.height,
                                     nx * box.length, ny * box.width)
-                                temp_block.contain[box.kind] = nx * ny * nz
                                 temp_block.new_using_volume = box.volume*nx * ny * nz
-                                if temp_block.contain[box.kind] <= 20:
-                                    Block.List.append(temp_block)
+                                temp_block.contain[box.kind] = nx * ny * nz
+                                Block.List.append(temp_block)
 
 # 产生复杂的块
 
@@ -161,8 +144,7 @@ def produce_complex_blocks(Block_List):
                                 temp_block.height <= Bin.Height and \
                                 temp_block.contain[0] <= Box.avail[0] and \
                                 temp_block.contain[1] <= Box.avail[1] and \
-                                temp_block.contain[2] <= Box.avail[2] and \
-                                temp_block.contain[0]+temp_block.contain[1]+temp_block.contain[2] <= 20:
+                                temp_block.contain[2] <= Box.avail[2]:
                             Block_List.append(temp_block)
                     if block1.limit_width == block1.width and \
                             block2.limit_width == block2.width and \
@@ -171,10 +153,10 @@ def produce_complex_blocks(Block_List):
                                            block1.width + block2.width,
                                            block1.height,
                                            min(block1.length, block2.length),
-                                           block1.width+block2.width)
+                                           block1.width + block2.width)
+                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         temp_block.set_level(block1, block2)
                         temp_block.set_contain(block1, block2)
-                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         if (temp_block.limit_lenght * temp_block.limit_width) / (temp_block.length * temp_block.width) >= Block.MinAreaRate and \
                                 (block1.volume + block2.volume) / temp_block.volume >= Block.MinFillRate and \
                                 temp_block.length <= Bin.Length and \
@@ -182,17 +164,16 @@ def produce_complex_blocks(Block_List):
                                 temp_block.height <= Bin.Height and \
                                 temp_block.contain[0] <= Box.avail[0] and \
                                 temp_block.contain[1] <= Box.avail[1] and \
-                                temp_block.contain[2] <= Box.avail[2] and \
-                                temp_block.contain[0]+temp_block.contain[1]+temp_block.contain[2] <= 20:
+                                temp_block.contain[2] <= Box.avail[2]:
                             Block_List.append(temp_block)
                     if block1.limit_lenght >= block2.length and \
                             block1.limit_width >= block2.width:
                         temp_block = Block(block1.length, block1.width,
                                            block1.height + block2.height,
                                            block2.limit_lenght, block2.limit_width)
+                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         temp_block.set_level(block1, block2)
                         temp_block.set_contain(block1, block2)
-                        temp_block.new_using_volume = block1.new_using_volume+block2.new_using_volume
                         if (temp_block.limit_lenght * temp_block.limit_width) / (temp_block.length * temp_block.width) >= Block.MinAreaRate and \
                                 (block1.volume + block2.volume) / temp_block.volume >= Block.MinFillRate and \
                                 temp_block.length <= Bin.Length and \
@@ -200,8 +181,7 @@ def produce_complex_blocks(Block_List):
                                 temp_block.height <= Bin.Height and \
                                 temp_block.contain[0] <= Box.avail[0] and \
                                 temp_block.contain[1] <= Box.avail[1] and \
-                                temp_block.contain[2] <= Box.avail[2] and \
-                                temp_block.contain[0]+temp_block.contain[1]+temp_block.contain[2] <= 20:
+                                temp_block.contain[2] <= Box.avail[2]:
                             Block_List.append(temp_block)
                     if len(Block_List) >= Block.MaxBlocks:
                         return
@@ -227,17 +207,15 @@ def merge_sort(lst):
 # 返回适合当前剩余空间的可行块列表
 
 
-def gen_block_list(bin, pos_space, avail):
+def gen_block_list(pos_space, avail):
     available_blocks = []
-    bin_contain = bin.get_contain()
     for block in Block.List:
         if block.length <= pos_space[1][0] and \
                 block.width <= pos_space[1][1] and \
                 block.height <= pos_space[1][2] and \
                 block.contain[0] <= avail[0] and \
                 block.contain[1] <= avail[1] and \
-                block.contain[2] <= avail[2] and \
-                (block.contain[0]+block.contain[1]+block.contain[2]+bin_contain[0]+bin_contain[1]+bin_contain[2]) <= 20:
+                block.contain[2] <= avail[2]:
             available_blocks.append(block)
     return available_blocks
 
@@ -286,13 +264,12 @@ def place_block(ps):
     Bin.Num += 1
     index = 0
     while Box.avail[0] != 0 or Box.avail[1] != 0 or Box.avail[2] != 0:
-        bin_contain = bin.get_contain()
-        if len(bin.spaceStack) == 0 or (bin_contain[0]+bin_contain[1]+bin_contain[2]) > 20:
+        if len(bin.spaceStack) == 0:
             Bin.List.append(bin)
             bin = Bin()
             Bin.Num += 1
         cur_pos_space = bin.spaceStack.pop()
-        usable_block_list = gen_block_list(bin, cur_pos_space, Box.avail)
+        usable_block_list = gen_block_list(cur_pos_space, Box.avail)
         if len(usable_block_list) != 0:
             cur_block = usable_block_list[ps[index %
                                              len(ps)] % len(usable_block_list)]
@@ -327,29 +304,29 @@ def annealing():
     produce_complex_blocks(Block.List)
     Block.delete_repeat()
     Block.List = merge_sort(Block.List)
-    ps = [0] * 20
+    ps = [0] * 15
     ps_copy = copy.deepcopy(ps)
     beat_rate = place_block(ps)
     rate_copy = copy.deepcopy(beat_rate)
-    temp_us_volume = Bin.volume * Bin.Num
+    temp_us_volume = Bin.used_volume
     beat_contain = Bin.get_contain_program()
     max_temperature = 100
     min_temperature = 2
-    max_times = 6
+    max_times = 8
     cur_temperature = max_temperature
     reset_date()
     while cur_temperature > min_temperature:
         for i in range(max_times):
             reset_date()
-            k = random.randint(0, 19)
+            k = random.randint(0, 14)
             cur_ps = copy.deepcopy(ps_copy)
-            cur_ps[k] = random.randint(0, 15)
+            cur_ps[k] = random.randint(0, 10)
             cur_rate = place_block(cur_ps)
             rate_list.append(cur_rate)
             if cur_rate > rate_copy:
                 ps_copy = cur_ps
                 rate_copy = cur_rate
-            elif random.random()*1.5 < math.exp(-math.fabs(temp_us_volume - Bin.volume * Bin.Num)*50 / (cur_temperature)):
+            elif random.random()*1.5 < math.exp(math.exp(-math.fabs(temp_us_volume - Bin.used_volume)) / (cur_temperature)):
                 ps_copy = cur_ps
                 rate_copy = cur_rate
             if cur_rate > beat_rate:
@@ -358,33 +335,9 @@ def annealing():
         cur_temperature = cur_temperature * 0.9
     print(beat_rate)
     print(beat_contain)
-
-    f.write(str(Bin.Num*BinLongth*BinWidth*BinHeight))
-    f.write('\n')
-    f.write(str(beat_contain))
-    f.write('\n')
-    f.write(str(Bin.Num))
-    f.write('\n')
+    x_x = [x for x in range(len(rate_list))]
+    plt.plot(x_x, rate_list)
+    plt.show()
 
 
-
-# annealing()
-
-
-df1 = pd.read_excel(
-    'D:\\Program_file\\Python-File\\20年数模校赛\\工作簿1.xlsx', sheet_name='Sheet1')
-x1 = np.array(df1)
-filename = 'write_data.txt'
-with open(filename, 'a') as f:
-    xxxx = 1
-    for lwh in x1:
-        f.write(str(xxxx))
-        f.write('\n')
-        xxxx += 1
-        BinLongth = lwh[0]
-        BinWidth = lwh[1]
-        BinHeight = lwh[2]
-        annealing()
-        reset_date()
-        print("---------------")
-
+annealing()
